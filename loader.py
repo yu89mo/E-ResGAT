@@ -15,7 +15,7 @@ def load_sage(path, binary):
     node_feat = np.ones((num_nodes, 64))
     node_features = nn.Embedding(node_feat.shape[0], node_feat.shape[1])
     node_features.weight = nn.Parameter(torch.FloatTensor(node_feat), requires_grad=False)
-    edge_feat = np.load(path+"edge_feat_scaled.npy")  # (n,f)
+    edge_feat = np.load(path+"edge_feat_scaled.npy", allow_pickle=True)  # (n,f)
     edge_features = nn.Embedding(edge_feat.shape[0], edge_feat.shape[1])
     edge_features.weight = nn.Parameter(torch.FloatTensor(edge_feat), requires_grad=False)
 
@@ -52,7 +52,7 @@ def load_sage(path, binary):
 
 def load_gat(path, device, binary):
     # feature
-    edge_feat = np.load(path + "edge_feat_scaled.npy")  # （n,f)
+    edge_feat = np.load(path + "edge_feat_scaled.npy", allow_pickle=True)  # （n,f)
     edge_feat = torch.tensor(edge_feat, dtype=torch.float, device=device)
 
     # label

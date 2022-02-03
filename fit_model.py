@@ -34,7 +34,7 @@ def fit(args):
     data = args.dataset
     binary = args.binary
     residual = args.residual
-    path = "datasets/"+ data
+    path = "datasets/"+ data + "/"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if alg == "sage":
         enc2, edge_feat, label, node_map, adj = load_sage(path, binary)

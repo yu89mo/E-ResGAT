@@ -10,19 +10,22 @@ from sklearn.model_selection import train_test_split
 from loader import (load_sage, load_gat)
 from models import (EGraphSage, EResGAT)
 
+###CES-CIC -> CSE-CIC
+###
+
 np.random.seed(1)
 random.seed(1)
 data_class = {"UNSW-NB15":10,
               "Darknet":9,
-              "CES-CIC":7,
+              "CSE-CIC":7,
               "ToN-IoT":10}
 data_lr = {"UNSW-NB15":0.007,
            "Darknet":0.003,
-           "CES-CIC":0.003,
+           "CSE-CIC":0.003,
            "ToN-IoT":0.01}
 test_size = {"UNSW-NB15":210000,
              "Darknet":45000,
-             "CES-CIC":75000,
+             "CSE-CIC":75000,
              "ToN-IoT":140000}
 
 
@@ -153,7 +156,7 @@ def predict_(alg, model, label, loss_fn, data_idx):
 
 if __name__ == '__main__':
     ALG = ['sage', 'gat']
-    DATA = ['UNSW-NB15', 'Darknet', 'CES-CIC', 'ToN-IoT']
+    DATA = ['UNSW-NB15', 'Darknet', 'CSE-CIC', 'ToN-IoT']
 
     p = argparse.ArgumentParser()
     p.add_argument('--alg',

@@ -10,6 +10,8 @@ from sklearn.model_selection import train_test_split
 from loader import (load_sage, load_gat)
 from models import (EGraphSage, EResGAT)
 
+torch.set_default_tensor_type('torch.cuda.FloatTensor')
+
 ###CES-CIC -> CSE-CIC
 ###
 
@@ -34,7 +36,7 @@ def fit(args):
     data = args.dataset
     binary = args.binary
     residual = args.residual
-    path = "datasets/"+ data + "/"
+    path = "datasets2/"+ data + "/"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if alg == "sage":
         enc2, edge_feat, label, node_map, adj = load_sage(path, binary)
@@ -64,8 +66,10 @@ def fit(args):
 
     # train test split
     num_edges = len(edge_feat)
+    label = label.to("cpu").numpy()
     train_val, test = train_test_split(np.arange(num_edges), test_size=test_size[data], stratify=label)
     train, val = train_test_split(train_val, test_size=5000, stratify=label[train_val])
+
 
     times = []
     trainscores = []
@@ -75,8 +79,8 @@ def fit(args):
         print("Epoch: ", epoch)
         random.shuffle(train)
         epoch_start = time.time()
-        for batch in range(int(len(train) / 500)):  # batches in train data
-            batch_edges = train[500 * batch:500 * (batch + 1)]  # 500 records per batch
+        for batch in range(int(len(train) / 1000)):  # batches in train data
+            batch_edges = train[100 * batch:100 * (batch + 1)]  # 500 records per batch
             start_time = time.time()
             # training
             model.train()
@@ -92,9 +96,9 @@ def fit(args):
                 _, out, _, idx = output
                 train_output = out.index_select(0, idx)
                 acc_train = f1_score(label[batch_edges],
-                                     torch.argmax(train_output, dim=-1),
+                                     torch.argmax(train_output, dim=-1).to("cpu").numpy(),
                                      average="weighted")
-                loss = loss_fn(train_output, label[batch_edges])
+                loss = loss_fn(train_output, torch.tensor(label[batch_edges]))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -107,8 +111,8 @@ def fit(args):
                   'acc_train: {:.4f}'.format(acc_train.item()),
                   'time: {:.4f}s'.format(end_time - start_time))
 
-            if batch >= 179:
-                break
+            # if batch >= 179:
+            #     break
         epoch_end = time.time()
 
         # Validation
@@ -141,10 +145,11 @@ def predict_(alg, model, label, loss_fn, data_idx):
         else:
             _, out, _, idx = batch_output
             batch_output = out.index_select(0, idx)
-            binary_output = torch.argmax(batch_output, dim=-1)
+            
             # batch_output = (batch_output >= 1).int()*-1
-            batch_loss = loss_fn(batch_output, label[batch_edges])
-        predict_output.extend(binary_output)
+            batch_loss = loss_fn(batch_output, torch.tensor(label[batch_edges]))
+            batch_output = torch.argmax(batch_output, dim=-1).to("cpu").numpy()
+        predict_output.extend(batch_output)
         loss += batch_loss.item()
         # emb.append(embed)
     loss /= batch + 1

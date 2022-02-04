@@ -141,9 +141,10 @@ def predict_(alg, model, label, loss_fn, data_idx):
         else:
             _, out, _, idx = batch_output
             batch_output = out.index_select(0, idx)
-            batch_output = torch.argmax(batch_output, dim=-1)
+            binary_output = torch.argmax(batch_output, dim=-1)
+            # batch_output = (batch_output >= 1).int()*-1
             batch_loss = loss_fn(batch_output, label[batch_edges])
-        predict_output.extend(batch_output)
+        predict_output.extend(binary_output)
         loss += batch_loss.item()
         # emb.append(embed)
     loss /= batch + 1
